@@ -24,30 +24,31 @@ from jinja2 import Environment, PackageLoader, Template
 ENV = Environment(loader=PackageLoader('folium', 'templates'))
 
 
+# This works well with Flask where the default Flask set-up hosts static files at /static/<path>
 _default_js = [
     ('leaflet',
-     'https://cdn.jsdelivr.net/npm/leaflet@1.5.1/dist/leaflet.js'),
+     './static/leaflet@1.5.1/leaflet.js'),
     ('jquery',
-     'https://code.jquery.com/jquery-1.12.4.min.js'),
+     './static/jquery-1.12.4.min.js'),
     ('bootstrap',
-     'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js'),
+     './static/bootstrap@3.2.0/bootstrap.min.js'),
     ('awesome_markers',
-     'https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js'),  # noqa
+     './static/leaflet.awesome-markers@2.0.2/leaflet.awesome-markers.js'),  # noqa
     ]
 
 _default_css = [
     ('leaflet_css',
-     'https://cdn.jsdelivr.net/npm/leaflet@1.5.1/dist/leaflet.css'),
+     './static/leaflet@1.5.1/leaflet.css'),
     ('bootstrap_css',
-     'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'),
+     './static/bootstrap@3.2.0/bootstrap.min.css'),
     ('bootstrap_theme_css',
-     'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css'),  # noqa
+     './static/bootstrap@3.2.0/bootstrap-theme.min.css'),  # noqa
     ('awesome_markers_font_css',
-     'https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css'),  # noqa
+     './static/font-awesome@4.6.3/font-awesome.min.css'),  # noqa
     ('awesome_markers_css',
-     'https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css'),  # noqa
+     './static/leaflet.awesome-markers@2.0.2/leaflet.awesome-markers.css'),  # noqa
     ('awesome_rotate_css',
-     'https://rawcdn.githack.com/python-visualization/folium/master/folium/templates/leaflet.awesome.rotate.css'),  # noqa
+     './static/leaflet.awesome.rotate.css'),  # noqa
     ]
 
 
