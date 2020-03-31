@@ -24,31 +24,21 @@ from jinja2 import Environment, PackageLoader, Template
 ENV = Environment(loader=PackageLoader('folium', 'templates'))
 
 
-_default_js = [
-    ('leaflet',
-     'https://cdn.jsdelivr.net/npm/leaflet@1.5.1/dist/leaflet.js'),
-    ('jquery',
-     'https://code.jquery.com/jquery-1.12.4.min.js'),
-    ('bootstrap',
-     'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js'),
-    ('awesome_markers',
-     'https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js'),  # noqa
-    ]
+_default_js = {
+    'leaflet': 'https://cdn.jsdelivr.net/npm/leaflet@1.5.1/dist/leaflet.js',
+    'jquery': 'https://code.jquery.com/jquery-1.12.4.min.js',
+    'bootstrap': 'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js',
+    'awesome_markers': 'https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.js',  # noqa
+}
 
-_default_css = [
-    ('leaflet_css',
-     'https://cdn.jsdelivr.net/npm/leaflet@1.5.1/dist/leaflet.css'),
-    ('bootstrap_css',
-     'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css'),
-    ('bootstrap_theme_css',
-     'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css'),  # noqa
-    ('awesome_markers_font_css',
-     'https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css'),  # noqa
-    ('awesome_markers_css',
-     'https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css'),  # noqa
-    ('awesome_rotate_css',
-     'https://rawcdn.githack.com/python-visualization/folium/master/folium/templates/leaflet.awesome.rotate.css'),  # noqa
-    ]
+_default_css = {
+    'leaflet_css': 'https://cdn.jsdelivr.net/npm/leaflet@1.5.1/dist/leaflet.css',
+    'bootstrap_css': 'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap.min.css',
+    'bootstrap_theme_css': 'https://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/css/bootstrap-theme.min.css',  # noqa
+    'awesome_markers_font_css': 'https://maxcdn.bootstrapcdn.com/font-awesome/4.6.3/css/font-awesome.min.css',  # noqa
+    'awesome_markers_css': 'https://cdnjs.cloudflare.com/ajax/libs/Leaflet.awesome-markers/2.0.2/leaflet.awesome-markers.css',  # noqa
+    'awesome_rotate_css': 'https://rawcdn.githack.com/python-visualization/folium/master/folium/templates/leaflet.awesome.rotate.css',  # noqa
+}
 
 
 class GlobalSwitches(Element):
@@ -135,6 +125,20 @@ class Map(MacroElement):
         rare environments) even if they're supported.
     zoom_control : bool, default True
         Display zoom controls on the map.
+    override_js: dict, default {}
+        Controls where the Javascript resources are downloaded from. Leave empty
+        to use the default list of known JS resource URLs. The provided
+        key-value pairs must contain key that overrides one of the keys found in
+        `_default_js` to use the value as the overriding custom URL for that
+        key. Only useful if the JS resources are custom-hosted and relative path
+        to use self-hosted resource is supported.
+    override_css: dict, default {}
+        Controls where the CSS resources are downloaded from. Leave empty
+        to use the default list of known CSS resource URLs. The provided
+        key-value pairs must contain key that overrides one of the keys found in
+        `_default_css` to use the value as the overriding custom URL for that
+        key. Only useful if the CSS resources are custom-hosted and relative
+        path to use self-hosted resource is supported.
     **kwargs
         Additional keyword arguments are passed to Leaflets Map class:
         https://leafletjs.com/reference-1.5.1.html#map
@@ -232,6 +236,8 @@ class Map(MacroElement):
             disable_3d=False,
             png_enabled=False,
             zoom_control=True,
+            override_js={},
+            override_css={},
             **kwargs
     ):
         super(Map, self).__init__()
@@ -283,6 +289,9 @@ class Map(MacroElement):
                                    min_zoom=min_zoom, max_zoom=max_zoom)
             self.add_child(tile_layer, name=tile_layer.tile_name)
 
+        self.set_override_js(override_js)
+        self.set_override_css(override_css)
+
     def _repr_html_(self, **kwargs):
         """Displays the HTML Map in a Jupyter notebook."""
         if self._parent is None:
@@ -331,6 +340,18 @@ class Map(MacroElement):
             return None
         return self._to_png()
 
+    def set_override_js(self, override_js):
+        # Drop unrelated keys for overriding JS URLs
+        override_js = {k: override_js[k] for k in override_js if k in _default_js}
+        self.result_js = _default_js.copy()
+        self.result_js.update(override_js)
+
+    def set_override_css(self, override_css):
+        # Drop unrelated keys for overriding CSS URLs
+        override_css = {k: override_css[k] for k in override_css if k in _default_css}
+        self.result_css = _default_css.copy()
+        self.result_css.update(override_css)
+        
     def render(self, **kwargs):
         """Renders the HTML representation of the element."""
         figure = self.get_root()
@@ -341,11 +362,11 @@ class Map(MacroElement):
         figure.header.add_child(self.global_switches, name='global_switches')
 
         # Import Javascripts
-        for name, url in _default_js:
+        for name, url in self.result_js.items():
             figure.header.add_child(JavascriptLink(url), name=name)
 
         # Import Css
-        for name, url in _default_css:
+        for name, url in self.result_css.items():
             figure.header.add_child(CssLink(url), name=name)
 
         figure.header.add_child(Element(
